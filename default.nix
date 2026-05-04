@@ -2,14 +2,15 @@
 let
   python = pkgs.python3;
   pythonPackages = python.pkgs;
+  lib = pkgs.lib;
 
   # Define salat dependency manually from PyPI
   pysimplegui = pythonPackages.buildPythonPackage rec {
     pname = "pysimplegui";
-    version = "1.1.0";
+    version = "6.0";
     src = pythonPackages.fetchPypi {
       inherit pname version;
-      sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+      sha256 = "sha256-UI+nFaT+zc3l10sgv0cxUbxdV1iLmFHMnXgVGcP72H0=";
       # Replace this with the actual hash from nix build error (see below)
     };
 
