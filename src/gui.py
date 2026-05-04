@@ -20,7 +20,7 @@ def set_tile(window, row, col, color:Color):
                               image_size=(50,48),
                               )
 
-def create_board():
+def create_board() -> sg.Window:
     # Configuration
     board_size = 11
     dark_tile = '#769656'  # Classic chess green
@@ -59,6 +59,10 @@ def create_board():
     ]
 
     window: sg.Window = sg.Window('Chess-style Grid', final_layout, element_justification='center')
+    return window
+
+if __name__ == '__main__':
+    window: sg.Window = create_board()
 
     while True:
         event, values = window.read()
@@ -72,5 +76,3 @@ def create_board():
 
     window.close()
 
-if __name__ == '__main__':
-    create_board()

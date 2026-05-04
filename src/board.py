@@ -93,7 +93,7 @@ class Board:
                 return True
         else:
             i,j = self.find_king()
-            if i,j == -1, -1 or self.is_sandwiched(i, j):
+            if (i,j) == (-1,-1) or self.is_sandwiched(i, j):
                 return True
         return False
 
