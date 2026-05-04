@@ -17,8 +17,8 @@ class Board:
             self.board[0][i] = Color.BLACK
         self.board[5][1] = Color.BLACK
         self.board[1][5] = Color.BLACK
-        self.board[10][1] =Color.BLACK
-        self.board[1][10] =Color.BLACK
+        self.board[5][9] =Color.BLACK
+        self.board[9][5] =Color.BLACK
         for i in range(4, 7):
             for j in range(4, 7): 
                 self.board[i][j] = Color.WHITE

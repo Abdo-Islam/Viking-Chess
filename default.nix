@@ -28,6 +28,7 @@ in
     propagatedBuildInputs = with pythonPackages; [
       setuptools
       pysimplegui
+      tkinter
     ];
 
     doCheck = false;
