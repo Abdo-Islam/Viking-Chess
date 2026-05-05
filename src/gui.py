@@ -7,14 +7,24 @@ from collections import namedtuple
 class Position(NamedTuple):
     row: int
     col: int
+def get_tile_color(pos:Position) -> str:
+    dark_tile = '#769656'  # Classic chess green
+    light_tile = '#eeeed2' # Classic chess cream
+    red_tile = '#ff4440' # Classic chess cream
+    if (pos.row, pos.col) in [(0,0), (0,10), (10,0), (10,10), (5,5)]:
+        return red_tile
+    elif (pos.row + pos.col) % 2 == 0:
+        return light_tile
+    else:
+        return dark_tile
 
 def get_piece_image(color:Color) -> str | None:
     if color == Color.WHITE:
-        return '../static/white.png'
+        return '../static/defend.png'
     elif color == Color.BLACK:
-        return '../static/dark.png'
+        return '../static/attacker.png'
     elif color == Color.KING:
-        return '../static/circle.png'
+        return '../static/king.png'
     else:
         return ""
 
@@ -35,13 +45,22 @@ class GameState:
         return self.board.board[pos.row][pos.col]
 
     def select_piece(self, pos:Position) -> bool:
+        print(f"Selected piece at {pos} with color {self.get_tile(pos)} current player {self.board.player}")
         if self.get_tile(pos) != Color.EMPTY and self.board.player == self.get_tile(pos):
             self.selected_piece = pos
+            self.window[(pos.row, pos.col)].update("", button_color=('white', 'yellow'))
             return True
         else:
             self.selected_piece = None
             return False
+    def unselect_piece(self):
+        print(f"Unselected piece at {self.selected_piece}")
+        if self.selected_piece is not None:
+            (row, col) = self.selected_piece
+            self.window[(row,col)].update("", button_color=('white', get_tile_color(self.selected_piece)))
+            self.selected_piece = None
     def select_tile(self, pos:Position) -> bool:
+        print(f"Selected tile at {pos} with color {self.get_tile(pos)} current player {self.board.player}")
         if self.selected_piece is not None and self.get_tile(pos) == Color.EMPTY:
             # # Example: Move the piece to the new tile (you would add your game logic here)
             # self.set_tile(pos, self.get_tile(self.selected_piece))
@@ -51,14 +70,20 @@ class GameState:
         return False
 
     def move_piece(self, from_pos:Position, to_pos:Position):
-        if self.select_piece(from_pos) and self.select_tile(to_pos):
+        # if self.select_piece(from_pos) and self.select_tile(to_pos):
             # Example: Move the piece to the new tile (you would add your game logic here)
             self.set_tile(to_pos, self.get_tile(from_pos))
             self.set_tile(from_pos, Color.EMPTY)
-            self.selected_piece = None
             self.board.player = Color.WHITE if self.board.player == Color.BLACK else Color.BLACK
+            self.window['turn'].update(f'Turn: {"Black" if self.board.player == Color.BLACK else "White"}')
+            self.unselect_piece()
     def handle_click(self, pos:Position):
         if self.selected_piece is None:
+            self.select_piece(pos)
+        elif self.selected_piece == pos:
+            self.unselect_piece()
+        elif self.get_tile(pos) != Color.EMPTY and self.board.player == self.get_tile(pos):
+            self.unselect_piece()
             self.select_piece(pos)
         else:
             if self.select_tile(pos):
@@ -77,17 +102,12 @@ class GameState:
         for row in range(board_size):
             row_layout = []
             for col in range(board_size):
-                # Determine color: if (row + col) is even, it's light; if odd, it's dark
-                color = light_tile if (row + col) % 2 == 0 else dark_tile
-                if (row, col) in [(0,0), (0,10), (10,0), (10,10), (5,5)]:  # Example: Highlight the top-left tile in red
-                    color = red_tile
-                
                 row_layout.append(
                     sg.Button(
                         '', 
                         size=(4, 2), 
                         key=(row, col), 
-                        button_color=('white', color),
+                        button_color=('white', get_tile_color(Position(row, col))),
                         image_filename=get_piece_image(self.board.board[row][col]),
                         image_size=(50,48),
                         pad=(0, 0),
@@ -99,6 +119,7 @@ class GameState:
         # Wrap the board in a column and add a 'Close' button
         final_layout = [
             [sg.Text('11x11 Custom Board', font=('Any', 18))],
+            [sg.Text('Turn: Black', font=('Any', 14), key='turn')],
             [sg.Column(layout, pad=(10, 10))],
             [sg.Button('Exit', size=(10, 1))]
         ]
