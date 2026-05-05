@@ -7,6 +7,8 @@ from collections import namedtuple
 class Position(NamedTuple):
     row: int
     col: int
+    def __repr__(self):
+        return f"({self.row}, {self.col})"
 def get_tile_color(pos:Position) -> str:
     dark_tile = '#769656'  # Classic chess green
     light_tile = '#eeeed2' # Classic chess cream
@@ -68,14 +70,20 @@ class GameState:
             # self.selected_piece = None
             return True
         return False
-
+    def set_turn_text(self, text:str):
+        self.window['turn'].update(text)
     def move_piece(self, from_pos:Position, to_pos:Position):
         # if self.select_piece(from_pos) and self.select_tile(to_pos):
             # Example: Move the piece to the new tile (you would add your game logic here)
+            if not self.board.is_valid_move(from_pos.row, from_pos.col, to_pos.row, to_pos.col):
+                print(f"Invalid move from {from_pos} to {to_pos}")
+                self.unselect_piece()
+                return
+                # raise ValueError("Invalid move")
             self.set_tile(to_pos, self.get_tile(from_pos))
             self.set_tile(from_pos, Color.EMPTY)
             self.board.player = Color.WHITE if self.board.player == Color.BLACK else Color.BLACK
-            self.window['turn'].update(f'Turn: {"Black" if self.board.player == Color.BLACK else "White"}')
+            self.set_turn_text(f'Turn: {"Black" if self.board.player == Color.BLACK else "White"}')
             self.unselect_piece()
     def handle_click(self, pos:Position):
         if self.selected_piece is None:
@@ -88,6 +96,9 @@ class GameState:
         else:
             if self.select_tile(pos):
                 self.move_piece(self.selected_piece, pos)
+                if self.board.is_win() and False:
+                    sg.popup(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
+                    self.set_turn_text(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
             self.selected_piece = None
 
     def create_board(self) -> sg.Window:
