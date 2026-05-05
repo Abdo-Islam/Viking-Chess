@@ -30,22 +30,30 @@ class Board:
 
 
     def is_corner(self, x, y):
-        return (x == 0 and y == 0) or (x == 0 and y == 10) or (x == 10 and y == 0) or (x == 10 and y == 10)
+        return (x == 0 and y == 0) or (x == 0 and y == 10) or (x == 10 and y == 0) or (x == 10 and y == 10) or (x == 5 and y == 5)
+        
+    def enemy_color(self, x, y):
+        return Color.WHITE if self.board[x][y] == Color.BLACK else Color.BLACK
         
     def is_sandwiched(self, x, y):
+        print(f"Checking if piece at ({x}, {y}) is sandwiched")
         if self.board[x][y] == Color.KING:
             if (x > 0 and self.board[x-1][y] == Color.BLACK) or (x == 0) or self.is_corner(x-1, y):
                 if (x < 10 and self.board[x+1][y] == Color.BLACK) or (x == 10) or self.is_corner(x+1, y):
                     if (y > 0 and self.board[x][y-1] == Color.BLACK) or (y == 0) or self.is_corner(x, y-1): 
                         if (y < 10 and self.board[x][y+1] == Color.BLACK) or (y == 10) or self.is_corner(x, y+1):
+                            print("King is sandwiched, first condition")
                             return True
+            return False
         if self.board[x][y] == Color.EMPTY:
             return False
-        if x > 0 and (self.board[x-1][y] != Color.EMPTY and self.board[x-1][y] != self.player) or self.is_corner(x-1, y):
-            if x < 10 and (self.board[x+1][y] != Color.EMPTY and self.board[x+1][y] != self.player) or self.is_corner(x+1, y):
+        if (x > 0 and self.board[x-1][y] == self.enemy_color(x, y)) or self.is_corner(x-1, y):
+            if (x < 10 and self.board[x+1][y] == self.enemy_color(x, y)) or self.is_corner(x+1, y):
+                print(f"Piece at ({x}, {y}) is sandwiched, Second condition")
                 return True
-        if y > 0 and (self.board[x][y-1] != Color.EMPTY and self.board[x][y-1] != self.player) or self.is_corner(x, y-1):
-            if y < 10 and (self.board[x][y+1] != Color.EMPTY and self.board[x][y+1] != self.player) or self.is_corner(x, y+1):
+        if (y > 0 and self.board[x][y-1] == self.enemy_color(x, y)) or self.is_corner(x, y-1):
+            if (y < 10 and self.board[x][y+1] == self.enemy_color(x, y)) or self.is_corner(x, y+1):
+                print(f"Piece at ({x}, {y}) is sandwiched, Third condition")
                 return True
         
         return False
@@ -59,7 +67,9 @@ class Board:
 
                     
     def is_valid_move(self, x1, y1, x2, y2):
-        if self.board[x1][y1] != self.player or (self.board[x1][y1] == Color.KING and self.player != Color.WHITE):
+        if self.board[x1][y1] == Color.KING and self.player == Color.WHITE: 
+            return True
+        if self.board[x1][y1] != self.player :
             return False
         if self.board[x2][y2] != Color.EMPTY:
             return False
@@ -80,10 +90,16 @@ class Board:
 
     def move_piece(self, x1, y1, x2, y2):
         if self.is_valid_move(x1, y1, x2, y2): 
-            self.board[x2][y2] = self.player
+            self.board[x2][y2] = self.board[x1][y1]
             self.board[x1][y1] = Color.EMPTY
             if self.is_sandwiched(x2, y2):
                 self.board[x2][y2] = Color.EMPTY
+            # check the 4 cells around the moved piece for sandwiching
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nx, ny = x2 + dx, y2 + dy
+                if 0 <= nx < 11 and 0 <= ny < 11:
+                    if self.is_sandwiched(nx, ny):
+                        self.board[nx][ny] = Color.EMPTY
             return True
         return False
 
