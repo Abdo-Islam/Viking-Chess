@@ -28,7 +28,7 @@ def get_piece_image(color:Color) -> str | None:
     elif color == Color.KING:
         return '../static/king.png'
     else:
-        return ""
+        return "../static/empty.png"
 
 class GameState:
     def __init__(self):
@@ -58,17 +58,17 @@ class GameState:
     def highlight_valid_moves(self, pos:Position):
         self.__get_valid_moves(pos)
         for move in self.__valid_moves:
-            self.window[(move.row, move.col)].update("",  image_filename=f"../static/{'dark' if self.board.player == Color.BLACK else 'white'}.png", image_size=(50,48))
+            self.window[(move.row, move.col)].update("",  image_filename=f"../static/{'dark' if self.board.player == Color.BLACK else 'white'}.png", image_size=(50,50))
     def unhighlight_valid_moves(self):
         for move in self.__valid_moves:
-            self.window[(move.row, move.col)].update("", button_color=('white', get_tile_color(move)), image_filename="", image_size=(50,48))
+            self.window[(move.row, move.col)].update("", button_color=('white', get_tile_color(move)), image_filename=get_piece_image(Color.EMPTY), image_size=(50,50))
         self.__valid_moves = []
 
     def set_tile(self, pos:Position, color:Color):
         piece_image = get_piece_image(color)
         self.window[(pos.row, pos.col)].update("", 
                                   image_filename=piece_image, 
-                                  image_size=(50,48),
+                                  image_size=(50,50),
                                   )
     def get_tile(self, pos:Position) -> Color:
         return self.board.board[pos.row][pos.col]
@@ -159,7 +159,7 @@ class GameState:
                         key=(row, col), 
                         button_color=('white', get_tile_color(Position(row, col))),
                         image_filename=get_piece_image(self.board.board[row][col]),
-                        image_size=(50,48),
+                        image_size=(50,50),
                         pad=(0, 0),
                         border_width=0,
                         auto_size_button=False
