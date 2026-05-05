@@ -116,3 +116,68 @@ class Board:
     def display(self):
         for row in self.board:
             print(' '.join(str(cell) for cell in row))
+
+# example for X_O game
+# def get_children(self, is_maximizing):
+#         """Generate all possible next moves"""
+#         children = []
+#         player = 'X' if is_maximizing else 'O'
+        
+#         for i in range(9):
+#             if self.board[i] == ' ':
+#                 # Create new board state
+#                 new_board = TicTacToe()
+#                 new_board.board = self.board.copy()
+#                 new_board.board[i] = player
+#                 children.append(new_board)
+        
+#         return children
+
+    def get_all_moves(self):
+        moves = []
+        
+        for i in range(11):
+            for j in range(11):
+                cell = self.board[i][j]
+
+                if cell == self.player or (cell == Color.KING and self.player == Color.WHITE):
+                    
+                    all_directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+                    
+                    for ch1, ch2 in all_directions:
+                        x = i + ch1
+                        y = j + ch2
+
+                        while x >= 0 and x < 11 and y >= 0 and y < 11:
+                            if self.is_valid_move(i, j, x, y):
+                                moves.append(((i, j), (x, y)))
+                            else:
+                                if self.board[x][y] != Color.EMPTY:
+                                    break
+                            x += ch1
+                            y += ch2
+        
+        return moves
+
+    def get_all_children(self): 
+        children = []
+        for move in self.get_all_moves():
+            new_board = Board(self.size)
+            
+            # Deep copy the board
+            for i in range(11):
+                for j in range(11):
+                    new_board.board[i][j] = self.board[i][j]
+            
+            x1 = move[0][0]
+            y1 = move[0][1]
+            x2 = move[1][0]
+            y2 = move[1][1]
+            
+            if new_board.move_piece(x1, y1, x2, y2):
+                # if self.player == Color.BLACK:
+                #     new_board.player = Color.WHITE
+                # else:
+                #     new_board.player = Color.BLACK
+                children.append(new_board)
+        return children
