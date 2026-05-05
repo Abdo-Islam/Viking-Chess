@@ -35,7 +35,34 @@ class GameState:
         self.board = Board(11)
         self.selected_piece: Position | None = None
         self.window: sg.Window | None = None
+        self.__valid_moves: list[Position] = []
 
+    def __get_valid_moves(self, pos:Position) -> list[Position]: # valid moves like rook
+        valid_moves = []
+        new_row, new_col = pos.row, pos.col
+        # Check horizontal and vertical directions
+        for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            new_row, new_col = pos.row + dr, pos.col + dc
+            while 0 <= new_row < self.board.size and 0 <= new_col < self.board.size:
+                if self.board.board[new_row][new_col] == Color.EMPTY:
+                    valid_moves.append(Position(new_row, new_col))
+                    new_row += dr
+                    new_col += dc
+                else:
+                    break
+        if pos in valid_moves:
+            valid_moves.remove(pos)
+        self.__valid_moves = valid_moves
+        return valid_moves
+
+    def highlight_valid_moves(self, pos:Position):
+        self.__get_valid_moves(pos)
+        for move in self.__valid_moves:
+            self.window[(move.row, move.col)].update("",  image_filename=f"../static/{'dark' if self.board.player == Color.BLACK else 'white'}.png", image_size=(50,48))
+    def unhighlight_valid_moves(self):
+        for move in self.__valid_moves:
+            self.window[(move.row, move.col)].update("", button_color=('white', get_tile_color(move)), image_filename="", image_size=(50,48))
+        self.__valid_moves = []
 
     def set_tile(self, pos:Position, color:Color):
         piece_image = get_piece_image(color)
@@ -46,11 +73,19 @@ class GameState:
     def get_tile(self, pos:Position) -> Color:
         return self.board.board[pos.row][pos.col]
 
+    def is_valid_selection(self, pos:Position) -> bool:
+        if self.board.player == Color.WHITE and (self.board.board[pos.row][pos.col] == Color.WHITE or self.board.board[pos.row][pos.col] == Color.KING):
+            return True
+        elif self.board.player == Color.BLACK and self.board.board[pos.row][pos.col] == Color.BLACK:
+            return True
+        return False
+
     def select_piece(self, pos:Position) -> bool:
         print(f"Selected piece at {pos} with color {self.get_tile(pos)} current player {self.board.player}")
-        if self.get_tile(pos) != Color.EMPTY and self.board.player == self.get_tile(pos):
+        if self.is_valid_selection(pos):
             self.selected_piece = pos
             self.window[(pos.row, pos.col)].update("", button_color=('white', 'yellow'))
+            self.highlight_valid_moves(pos)
             return True
         else:
             self.selected_piece = None
@@ -61,6 +96,7 @@ class GameState:
             (row, col) = self.selected_piece
             self.window[(row,col)].update("", button_color=('white', get_tile_color(self.selected_piece)))
             self.selected_piece = None
+            self.unhighlight_valid_moves()
     def select_tile(self, pos:Position) -> bool:
         print(f"Selected tile at {pos} with color {self.get_tile(pos)} current player {self.board.player}")
         if self.selected_piece is not None and self.get_tile(pos) == Color.EMPTY:
@@ -79,9 +115,12 @@ class GameState:
                 print(f"Invalid move from {from_pos} to {to_pos}")
                 self.unselect_piece()
                 return
+            self.unhighlight_valid_moves()
+            print(f"Moving piece from {from_pos} to {to_pos}")
                 # raise ValueError("Invalid move")
             self.set_tile(to_pos, self.get_tile(from_pos))
             self.set_tile(from_pos, Color.EMPTY)
+            self.board.move_piece(from_pos.row, from_pos.col, to_pos.row, to_pos.col)
             self.board.player = Color.WHITE if self.board.player == Color.BLACK else Color.BLACK
             self.set_turn_text(f'Turn: {"Black" if self.board.player == Color.BLACK else "White"}')
             self.unselect_piece()
