@@ -3,6 +3,8 @@ from board import Color, Board
 from typing import NamedTuple
 from collections import namedtuple
 
+
+BACKGROUND_COLOR = '#111'  # Dark background for contrast
 # type Position = tuple[int, int]
 class Position(NamedTuple):
     row: int
@@ -168,13 +170,13 @@ class GameState:
             layout.append(row_layout)
         # Wrap the board in a column and add a 'Close' button
         final_layout = [
-            [sg.Text('11x11 Custom Board', font=('Any', 18))],
-            [sg.Text('Turn: Black', font=('Any', 14), key='turn')],
-            [sg.Column(layout, pad=(10, 10))],
-            [sg.Button('Exit', size=(10, 1))]
+            [sg.Text('11x11 Custom Board', font=('Any', 18), background_color=BACKGROUND_COLOR)],
+            [sg.Text('Turn: Black', font=('Any', 14), key='turn', background_color=BACKGROUND_COLOR)],
+            [sg.Column(layout, pad=(50, 10))],
+            [sg.Button('Exit', size=(10, 1), button_color=('white', BACKGROUND_COLOR))]
         ]
 
-        self.window: sg.Window = sg.Window('Chess-style Grid', final_layout, element_justification='center')
+        self.window: sg.Window = sg.Window('Chess-style Grid', final_layout, element_justification='center', background_color=BACKGROUND_COLOR)
         return self.window
 
 if __name__ == '__main__':
