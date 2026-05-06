@@ -52,9 +52,8 @@ class GameState:
             new_row, new_col = pos.row + dr, pos.col + dc
             while 0 <= new_row < self.board.size and 0 <= new_col < self.board.size:
                 if self.board.board[new_row][new_col] == Color.EMPTY:
-                    if [new_row, new_col] in [(0,0), (0,10), (10,0), (10,10), (5,5)]:
-                        continue
-                    valid_moves.append(Position(new_row, new_col))
+                    if [new_row, new_col] not in [[0,0], [0,10], [10,0], [10,10], [5,5]]:
+                        valid_moves.append(Position(new_row, new_col))
                     new_row += dr
                     new_col += dc
                 else:
@@ -167,7 +166,12 @@ class GameState:
                     self.set_turn_text(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
             self.selected_piece = None
     def ai_move(self):
-        pass
+        move = self.board.get_best_move(self.ai_level)
+        if move is not None:
+            from_pos = Position(move[0], move[1])
+            to_pos = Position(move[2], move[3])
+            self.handle_click(from_pos)
+            self.handle_click(to_pos)
 
     def create_board(self) -> sg.Window:
         # Configuration
@@ -208,17 +212,19 @@ class GameState:
 
 if __name__ == '__main__':
     game_mode = input("Enter game mode:-\n1 for Player vs Player\n2 for Player vs AI\n:")
+    level = 1
     if game_mode not in ['1', '2']:
         print("Invalid game mode, defaulting to Player vs Player")
         game_mode = 1
     else:
         game_mode = int(game_mode)
-        level = input("Enter AI difficulty level (1-3, higher is harder): ")
-        if level not in ['1', '2', '3']:
-            print("Invalid difficulty level, defaulting to 1")
-            level = 1
-        else:
-            level = int(level)
+        if game_mode == GameMode.AI:
+            level = input("Enter AI difficulty level (1-3, higher is harder): ")
+            if level not in ['1', '2', '3']:
+                print("Invalid difficulty level, defaulting to 1")
+                level = 1
+            else:
+                level = int(level)
     game = GameState(game_mode, level)
     window = game.create_board()
 
