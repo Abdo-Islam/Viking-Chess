@@ -3,6 +3,9 @@ from board import Color, Board
 from typing import NamedTuple
 from collections import namedtuple
 
+class GameMode:
+    HUMAN = 1
+    AI = 2
 
 BACKGROUND_COLOR = '#111'  # Dark background for contrast
 # type Position = tuple[int, int]
@@ -33,11 +36,13 @@ def get_piece_image(color:Color) -> str | None:
         return "../static/empty.png"
 
 class GameState:
-    def __init__(self):
+    def __init__(self, game_mode:int=1, ai_level:int=1):
         self.board = Board(11)
         self.selected_piece: Position | None = None
         self.window: sg.Window | None = None
         self.__valid_moves: list[Position] = []
+        self.game_mode = game_mode
+        self.ai_level = ai_level
 
     def __get_valid_moves(self, pos:Position) -> list[Position]: # valid moves like rook
         valid_moves = []
@@ -142,6 +147,8 @@ class GameState:
             self.render_tile(Position(to_pos.row+1, to_pos.col))
             self.render_tile(Position(to_pos.row-1, to_pos.col))
             self.unselect_piece()
+            if self.game_mode == GameMode.AI and self.board.player == Color.WHITE:
+                self.ai_move()
     def handle_click(self, pos:Position):
         if self.selected_piece is None:
             self.select_piece(pos)
@@ -157,6 +164,8 @@ class GameState:
                     sg.popup(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
                     self.set_turn_text(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
             self.selected_piece = None
+    def ai_move(self):
+        pass
 
     def create_board(self) -> sg.Window:
         # Configuration
@@ -196,7 +205,19 @@ class GameState:
         return self.window
 
 if __name__ == '__main__':
-    game = GameState()
+    game_mode = input("Enter game mode:-\n1 for Player vs Player\n2 for Player vs AI\n:")
+    if game_mode not in ['1', '2']:
+        print("Invalid game mode, defaulting to Player vs Player")
+        game_mode = 1
+    else:
+        game_mode = int(game_mode)
+        level = input("Enter AI difficulty level (1-3, higher is harder): ")
+        if level not in ['1', '2', '3']:
+            print("Invalid difficulty level, defaulting to 1")
+            level = 1
+        else:
+            level = int(level)
+    game = GameState(game_mode, level)
     window = game.create_board()
 
     while True:
