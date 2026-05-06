@@ -167,6 +167,7 @@ class GameState:
             self.selected_piece = None
     def ai_move(self):
         move = self.board.get_best_move(self.ai_level)
+        print(f"AI selects move: {move}")
         if move is not None:
             self.move_piece(Position(move[0], move[1]), Position(move[2], move[3]))
             if self.board.is_win():
