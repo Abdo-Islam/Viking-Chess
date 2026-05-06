@@ -9,17 +9,15 @@ class Color(Enum):
 class Board:
     def __init__(self, size=11):
         self.size = size
-        self.player = Color.BLACK  # BLACK (attackers) move first
+        self.player = Color.BLACK  
         self.board : list[list[Color]] = [[Color.EMPTY for _ in range(size)] for _ in range(size)]
         
-        # Separate data structures for piece positions
-        self.white_pieces: list[tuple[int, int]] = []  # List of (x, y) positions for white pieces (defenders)
-        self.black_pieces: list[tuple[int, int]] = []  # List of (x, y) positions for black pieces (attackers)
-        self.king_position: tuple[int, int] = (5, 5)   # King position
+        self.white_pieces: list[tuple[int, int]] = []  
+        self.black_pieces: list[tuple[int, int]] = []  
+        self.king_position: tuple[int, int] = (5, 5)   
         self.THRONE = (5, 5) 
         self.CORNERS = [(0, 0), (0, 10), (10, 0), (10, 10)]  # Corner squares
         
-        # Setup attackers (BLACK) - 24 pieces around edges
         for i in range(3, 8):
             self.board[i][0] = Color.BLACK
             self.black_pieces.append((i, 0))
@@ -38,7 +36,6 @@ class Board:
         self.board[9][5] = Color.BLACK
         self.black_pieces.append((9, 5))
         
-        # Setup defenders (WHITE) - 12 pieces around king
         for i in range(4, 7):
             for j in range(4, 7): 
                 self.board[i][j] = Color.WHITE
@@ -77,13 +74,17 @@ class Board:
             return self.is_king_captured()
         enemy = self.enemy_color(x, y)
         left_is_hostile = False
-        if self.board[x][y-1] == enemy:
+        if y == 0:
+            left_is_hostile = False
+        elif self.board[x][y-1] == enemy:
             left_is_hostile = True
         elif self.is_corner(x, y-1) :
             left_is_hostile = True
 
         right_is_hostile = False
-        if self.board[x][y+1] == enemy:
+        if y == self.size - 1:
+            right_is_hostile = False
+        elif self.board[x][y+1] == enemy:
             right_is_hostile = True
         elif self.is_corner(x, y+1) :
             right_is_hostile = True
@@ -92,13 +93,17 @@ class Board:
             return True
 
         up_is_hostile = False
-        if self.board[x-1][y] == enemy:
+        if x == 0:
+            up_is_hostile = False
+        elif self.board[x-1][y] == enemy:
             up_is_hostile = True
         elif self.is_corner(x-1, y):
             up_is_hostile = True
 
         down_is_hostile = False
-        if self.board[x+1][y] == enemy:
+        if x == self.size - 1:
+            down_is_hostile = False
+        elif self.board[x+1][y] == enemy:
             down_is_hostile = True
         elif self.is_corner(x+1, y) :
             down_is_hostile = True
@@ -189,7 +194,6 @@ class Board:
                     self.black_pieces.remove((x2, y2))
                 self.board[x2][y2] = Color.EMPTY
             
-            # check the 4 cells around the moved piece for sandwiching
             for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 nx, ny = x2 + dx, y2 + dy
                 if 0 <= nx < 11 and 0 <= ny < 11:
@@ -205,21 +209,25 @@ class Board:
             return True
         return False
     def is_win(self): 
-        if self.player == Color.WHITE: 
-            if self.king_position in self.CORNERS:
-                return True
+        if self.king_position in self.CORNERS:
+            return True
         else:
             if self.is_king_captured():
                 return True
         return False
     def evaluate(self) -> int:
-        black_score = 12-len(self.white_pieces)  # Count white pieces
-        white_score = 24-len(self.black_pieces)  # Count black pieces
-        
         if self.king_position == (-1, -1):
-            black_score += 25
+            return -1000  
         elif self.king_position in self.CORNERS:
-            white_score += 25
+            return 1000   
+        
+        white_score = (24 - len(self.black_pieces)) * 20
+        black_score = (13 - len(self.white_pieces)) * 20  
+        
+        king_x, king_y = self.king_position
+        min_dist_to_corner = min(abs(king_x - cx) + abs(king_y - cy) for cx, cy in self.CORNERS)
+        white_score -= min_dist_to_corner * 5  
+        
         return white_score - black_score
     def get_all_valid_moves(self, player: Color) -> list[tuple[int, int, int, int]]:
         moves = []
@@ -231,7 +239,7 @@ class Board:
             for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 nx, ny = x + dx, y + dy
                 while 0 <= nx < self.size and 0 <= ny < self.size:
-                    if self.board[nx][ny] == Color.EMPTY:
+                    if self.is_valid_move(x, y, nx, ny):
                         moves.append((x, y, nx, ny))
                         nx += dx
                         ny += dy
@@ -253,7 +261,6 @@ class Board:
                 board_copy.move_piece(x1, y1, x2, y2)
                 board_copy.player = Color.BLACK
                 
-                # Recursive call
                 eval_score, _ = board_copy.alpha_beta(depth - 1, alpha, beta, False)
                 
                 if eval_score > max_eval:
@@ -264,21 +271,19 @@ class Board:
                     break
             return (max_eval, best_move)
         
-        else:  # BLACK's turn (minimize)
+        else:  
             min_eval = float('inf')
             best_move = None
             moves = self.get_all_valid_moves(Color.BLACK)
             
-            if not moves:  # No valid moves
+            if not moves:  
                 return (self.evaluate(), None)
             
             for x1, y1, x2, y2 in moves:
-                # Make a copy of the board state
                 board_copy = deepcopy(self)
                 board_copy.move_piece(x1, y1, x2, y2)
                 board_copy.player = Color.WHITE
                 
-                # Recursive call
                 eval_score, _ = board_copy.alpha_beta(depth - 1, alpha, beta, True)
                 
                 if eval_score < min_eval:
