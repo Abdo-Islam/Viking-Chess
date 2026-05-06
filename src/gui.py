@@ -161,7 +161,7 @@ class GameState:
         else:
             if self.select_tile(pos):
                 self.move_piece(self.selected_piece, pos)
-                if self.board.is_win() and False:
+                if self.board.is_win():
                     sg.popup(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
                     self.set_turn_text(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
             self.selected_piece = None
@@ -169,7 +169,7 @@ class GameState:
         move = self.board.get_best_move(self.ai_level)
         if move is not None:
             self.move_piece(Position(move[0], move[1]), Position(move[2], move[3]))
-            if self.board.is_win() and False:
+            if self.board.is_win():
                 sg.popup(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
                 self.set_turn_text(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
 
