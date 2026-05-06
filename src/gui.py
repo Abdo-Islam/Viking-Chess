@@ -52,6 +52,8 @@ class GameState:
             new_row, new_col = pos.row + dr, pos.col + dc
             while 0 <= new_row < self.board.size and 0 <= new_col < self.board.size:
                 if self.board.board[new_row][new_col] == Color.EMPTY:
+                    if [new_row, new_col] in [(0,0), (0,10), (10,0), (10,10), (5,5)]:
+                        continue
                     valid_moves.append(Position(new_row, new_col))
                     new_row += dr
                     new_col += dc
