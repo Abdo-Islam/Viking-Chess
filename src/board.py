@@ -77,17 +77,13 @@ class Board:
             return self.is_king_captured()
         enemy = self.enemy_color(x, y)
         left_is_hostile = False
-        if y == 0:
-            left_is_hostile = True
-        elif self.board[x][y-1] == enemy:
+        if self.board[x][y-1] == enemy:
             left_is_hostile = True
         elif self.is_corner(x, y-1) :
             left_is_hostile = True
 
         right_is_hostile = False
-        if y == self.size - 1:
-            right_is_hostile = True
-        elif self.board[x][y+1] == enemy:
+        if self.board[x][y+1] == enemy:
             right_is_hostile = True
         elif self.is_corner(x, y+1) :
             right_is_hostile = True
@@ -96,17 +92,13 @@ class Board:
             return True
 
         up_is_hostile = False
-        if x == 0:
-            up_is_hostile = True
-        elif self.board[x-1][y] == enemy:
+        if self.board[x-1][y] == enemy:
             up_is_hostile = True
         elif self.is_corner(x-1, y):
             up_is_hostile = True
 
         down_is_hostile = False
-        if x == self.size - 1:
-            down_is_hostile = True
-        elif self.board[x+1][y] == enemy:
+        if self.board[x+1][y] == enemy:
             down_is_hostile = True
         elif self.is_corner(x+1, y) :
             down_is_hostile = True
@@ -212,7 +204,6 @@ class Board:
                         self.board[nx][ny] = Color.EMPTY
             return True
         return False
-
     def is_win(self): 
         if self.player == Color.WHITE: 
             if self.king_position in self.CORNERS:
