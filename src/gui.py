@@ -3,6 +3,11 @@ from board import Color, Board
 from typing import NamedTuple
 from collections import namedtuple
 
+class GameMode:
+    HUMAN = 1
+    AI = 2
+
+BACKGROUND_COLOR = '#111'  # Dark background for contrast
 # type Position = tuple[int, int]
 class Position(NamedTuple):
     row: int
@@ -31,11 +36,13 @@ def get_piece_image(color:Color) -> str | None:
         return "../static/empty.png"
 
 class GameState:
-    def __init__(self):
+    def __init__(self, game_mode:int=1, ai_level:int=1):
         self.board = Board(11)
         self.selected_piece: Position | None = None
         self.window: sg.Window | None = None
         self.__valid_moves: list[Position] = []
+        self.game_mode = game_mode
+        self.ai_level = ai_level
 
     def __get_valid_moves(self, pos:Position) -> list[Position]: # valid moves like rook
         valid_moves = []
@@ -69,6 +76,16 @@ class GameState:
         self.window[(pos.row, pos.col)].update("", 
                                   image_filename=piece_image, 
                                   image_size=(50,50),
+                                  )
+    def render_tile(self, pos:Position):
+        if pos.row < 0 or pos.row >= self.board.size or pos.col < 0 or pos.col >= self.board.size:
+            return
+        color = self.board.board[pos.row][pos.col]
+        piece_image = get_piece_image(color)
+        self.window[(pos.row, pos.col)].update("", 
+                                  image_filename=piece_image, 
+                                  image_size=(50,50),
+                                  button_color=('white', get_tile_color(pos))
                                   )
     def get_tile(self, pos:Position) -> Color:
         return self.board.board[pos.row][pos.col]
@@ -123,7 +140,15 @@ class GameState:
             self.board.move_piece(from_pos.row, from_pos.col, to_pos.row, to_pos.col)
             self.board.player = Color.WHITE if self.board.player == Color.BLACK else Color.BLACK
             self.set_turn_text(f'Turn: {"Black" if self.board.player == Color.BLACK else "White"}')
+            self.render_tile(from_pos)
+            self.render_tile(to_pos)
+            self.render_tile(Position(to_pos.row, to_pos.col+1))
+            self.render_tile(Position(to_pos.row, to_pos.col-1))
+            self.render_tile(Position(to_pos.row+1, to_pos.col))
+            self.render_tile(Position(to_pos.row-1, to_pos.col))
             self.unselect_piece()
+            if self.game_mode == GameMode.AI and self.board.player == Color.WHITE:
+                self.ai_move()
     def handle_click(self, pos:Position):
         if self.selected_piece is None:
             self.select_piece(pos)
@@ -139,6 +164,8 @@ class GameState:
                     sg.popup(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
                     self.set_turn_text(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
             self.selected_piece = None
+    def ai_move(self):
+        pass
 
     def create_board(self) -> sg.Window:
         # Configuration
@@ -168,17 +195,29 @@ class GameState:
             layout.append(row_layout)
         # Wrap the board in a column and add a 'Close' button
         final_layout = [
-            [sg.Text('11x11 Custom Board', font=('Any', 18))],
-            [sg.Text('Turn: Black', font=('Any', 14), key='turn')],
-            [sg.Column(layout, pad=(10, 10))],
-            [sg.Button('Exit', size=(10, 1))]
+            [sg.Text('11x11 Custom Board', font=('Any', 18), background_color=BACKGROUND_COLOR)],
+            [sg.Text('Turn: Black', font=('Any', 14), key='turn', background_color=BACKGROUND_COLOR)],
+            [sg.Column(layout, pad=(50, 10))],
+            [sg.Button('Exit', size=(10, 1), button_color=('white', BACKGROUND_COLOR))]
         ]
 
-        self.window: sg.Window = sg.Window('Chess-style Grid', final_layout, element_justification='center')
+        self.window: sg.Window = sg.Window('Chess-style Grid', final_layout, element_justification='center', background_color=BACKGROUND_COLOR)
         return self.window
 
 if __name__ == '__main__':
-    game = GameState()
+    game_mode = input("Enter game mode:-\n1 for Player vs Player\n2 for Player vs AI\n:")
+    if game_mode not in ['1', '2']:
+        print("Invalid game mode, defaulting to Player vs Player")
+        game_mode = 1
+    else:
+        game_mode = int(game_mode)
+        level = input("Enter AI difficulty level (1-3, higher is harder): ")
+        if level not in ['1', '2', '3']:
+            print("Invalid difficulty level, defaulting to 1")
+            level = 1
+        else:
+            level = int(level)
+    game = GameState(game_mode, level)
     window = game.create_board()
 
     while True:
