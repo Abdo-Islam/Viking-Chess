@@ -72,6 +72,16 @@ class GameState:
                                   image_filename=piece_image, 
                                   image_size=(50,50),
                                   )
+    def render_tile(self, pos:Position):
+        if pos.row < 0 or pos.row >= self.board.size or pos.col < 0 or pos.col >= self.board.size:
+            return
+        color = self.board.board[pos.row][pos.col]
+        piece_image = get_piece_image(color)
+        self.window[(pos.row, pos.col)].update("", 
+                                  image_filename=piece_image, 
+                                  image_size=(50,50),
+                                  button_color=('white', get_tile_color(pos))
+                                  )
     def get_tile(self, pos:Position) -> Color:
         return self.board.board[pos.row][pos.col]
 
@@ -125,6 +135,12 @@ class GameState:
             self.board.move_piece(from_pos.row, from_pos.col, to_pos.row, to_pos.col)
             self.board.player = Color.WHITE if self.board.player == Color.BLACK else Color.BLACK
             self.set_turn_text(f'Turn: {"Black" if self.board.player == Color.BLACK else "White"}')
+            self.render_tile(from_pos)
+            self.render_tile(to_pos)
+            self.render_tile(Position(to_pos.row, to_pos.col+1))
+            self.render_tile(Position(to_pos.row, to_pos.col-1))
+            self.render_tile(Position(to_pos.row+1, to_pos.col))
+            self.render_tile(Position(to_pos.row-1, to_pos.col))
             self.unselect_piece()
     def handle_click(self, pos:Position):
         if self.selected_piece is None:
