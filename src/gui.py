@@ -168,10 +168,11 @@ class GameState:
     def ai_move(self):
         move = self.board.get_best_move(self.ai_level)
         if move is not None:
-            from_pos = Position(move[0], move[1])
-            to_pos = Position(move[2], move[3])
-            self.handle_click(from_pos)
-            self.handle_click(to_pos)
+            self.move_piece(Position(move[0], move[1]), Position(move[2], move[3]))
+            if self.board.is_win() and False:
+                sg.popup(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
+                self.set_turn_text(f"{'Black' if self.board.player == Color.WHITE else 'White'} wins!")
+
 
     def create_board(self) -> sg.Window:
         # Configuration
